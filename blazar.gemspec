@@ -5,6 +5,16 @@ $LOAD_PATH.push File.expand_path('lib', __dir__)
 # Maintain your gem's version:
 require 'blazar/version'
 
+def add_platform_and_deps(spec)
+  # This needs SQLite for now. Eventually use adapter pattern to make it
+  # optional and support different Hosts
+  # SQLite3 doesn't work for jruby
+  spec.platform = Gem::Platform::RUBY
+  spec.add_dependency 'sqlite3', '~> 1.4.2'
+
+  spec.add_dependency 'rails', '~> 6.0.0'
+end
+
 # Describe your gem and declare its dependencies:
 Gem::Specification.new do |spec|
   spec.name        = 'blazar'
@@ -27,5 +37,5 @@ Gem::Specification.new do |spec|
 
   spec.files = Dir['{app,config,db,lib}/**/*', 'MIT-LICENSE', 'Rakefile', 'README.md']
 
-  spec.add_dependency 'rails', '~> 6.0.0'
+  add_platform_and_deps(spec)
 end

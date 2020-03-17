@@ -9,6 +9,7 @@ group :development, :test do
   gem 'byebug', platforms: %i[mri mingw x64_mingw]
   gem 'coveralls', '~> 0.8.23', require: false
   gem 'factory_bot_rails', '~> 5.0.2'
+  gem 'mysql2', '~> 0.5.3'
   gem 'simplecov', '~> 0.16.1', require: false
 end
 
@@ -31,14 +32,4 @@ group :development do
       branch: 'invisible-offenses'
   gem 'sorbet', '~> 0.4'
   gem 'yard', '~> 0.9.20'
-end
-
-platforms :jruby do
-  gem 'activerecord-jdbc-adapter'
-  gem 'activerecord-jdbcsqlite3-adapter'
-  gem 'jruby-openssl'
-end
-
-platforms :ruby do
-  gem 'sqlite3'
 end
