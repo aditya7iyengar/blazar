@@ -5,7 +5,7 @@ require_relative 'boot'
 require 'rails/all'
 
 Bundler.require(*Rails.groups)
-require 'blazar2'
+require 'blazar'
 
 module Dummy
   class Application < Rails::Application
