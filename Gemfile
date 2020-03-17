@@ -17,8 +17,8 @@ group :test do
   gem 'database_cleaner', '~> 1.7'
   gem 'rails-controller-testing', '~> 1.0'
   gem 'rake', '~> 12.3'
-  gem 'rspec', '~> 3.0'
-  gem 'rspec-rails', '~> 3.8'
+  gem 'rspec'
+  gem 'rspec-rails'
   gem 'rspec_junit_formatter', '~> 0.4.1'
   gem 'shoulda-matchers', '~> 3.1'
 end
