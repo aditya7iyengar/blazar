@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 class CreateCategories < ActiveRecord::Migration[6.0]
   def change
     create_table :categories do |t|
       t.string :name
-      t.categories :references
+      t.references :category
 
       t.timestamps
     end
