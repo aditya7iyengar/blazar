@@ -3,6 +3,7 @@
 require 'blazar/railtie'
 
 require 'blazar/options'
+require 'blazar/schema'
 require 'blazar/tables'
 require 'blazar/host'
 

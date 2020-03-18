@@ -10,13 +10,13 @@ module UpdateChildrenPrice
 
   def self.maximize_all(root_category, upper_limit = 94, lower_limit = 93)
     Blazar.beam(scopes: [Category.all, Product.all]) do
-      bm1 = Benchmark.measure do
-        child_products(root_category).each do |product|
-          maximize(product, upper_limit, lower_limit)
-        end
+      child_products(root_category).each do |product|
+        maximize(product, upper_limit, lower_limit)
       end
 
-      puts bm1
+      child_products(root_category).each do |product|
+        maximize(product, upper_limit / 2, (lower_limit - 1) / 2)
+      end
     end
   end
 
@@ -39,8 +39,8 @@ module UpdateChildrenPrice
   end
 
   def self.multiply(product, factor)
-    product.price *= factor
-    product.price = product.price.round.to_f
+    price = product.price * factor
+    product.price = price.round.to_f
 
     product.save!
   end

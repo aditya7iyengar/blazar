@@ -13,22 +13,26 @@ module Blazar
     def encapsulate
       old_config = ActiveRecord::Base.connection_config
 
-      scopes = @scopes.map(&:to_a)
+      scopes = @scopes.map(&:to_a).flatten
 
       ActiveRecord::Base.establish_connection(host_params)
       ActiveRecord::Schema.verbose = false
 
-      eval(`cat #{Rails.root.join('db', 'schema.rb')} | sed 's/,[^:]*: :serial\//g'`)
+      load_schema(scopes)
 
       new_records =
-        scopes.flatten.map do |record|
-          new_record = record.dup
-          new_record.id = record.id
-          new_record.save!
-          new_record
+        ActiveRecord::Base.transaction(requires_new: true) do
+          scopes.map do |record|
+            new_record = record.dup
+            new_record.id = record.id
+            new_record.save!
+            new_record
+          end
         end
 
-      yield
+      ActiveRecord::Base.transaction(requires_new: true) do
+        yield
+      end
 
       new_records = new_records.map(&:reload)
 
@@ -43,7 +47,8 @@ module Blazar
             %w[id created_at updated_at].include?(key)
           end
 
-        record.update_attributes(attrs)
+        # skip validations & callbacks ?
+        record.update_columns(attrs)
       end
     end
 
@@ -52,6 +57,21 @@ module Blazar
     def host_from_host_options(host_options)
       @host_type = host_options[:type]
       @host_params = host_options[:params]
+    end
+
+    def load_schema(scopes)
+      schema_contents = File.read(Rails.root.join('db', 'schema.rb'))
+      schema_contents = Blazar::Schema.clean(schema_contents)
+      table_names = table_names_from_scopes(scopes)
+      schema_contents = Blazar::Schema.filter(schema_contents, table_names)
+
+      # TODO: Think about a better way to get this
+      eval(schema_contents)
+    end
+
+    def table_names_from_scopes(scopes)
+      # two uniques for STI
+      scopes.map(&:class).uniq.map(&:table_name).uniq
     end
   end
 end

@@ -40,14 +40,14 @@ RSpec.describe UpdateChildrenPrice do
 
         puts bm
         product1.reload
-      end.to change(product1, :price).from(44).to(93)
+      end.to change(product1, :price).from(44).to(47)
     end
 
     it 'updates product2 price to 94' do
       expect do
         described_class.maximize_all(product1.category)
         product2.reload
-      end.to change(product2, :price).from(46).to(94)
+      end.to change(product2, :price).from(46).to(47)
     end
   end
 end
