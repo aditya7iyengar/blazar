@@ -4,7 +4,6 @@ require 'blazar/railtie'
 
 require 'blazar/options'
 require 'blazar/schema'
-require 'blazar/tables'
 require 'blazar/host'
 
 # Documentation for Blazar
@@ -27,12 +26,9 @@ module Blazar
   # end
   def self.beam(options)
     options = validate_and_extract_options(options)
-    Tables.lock(options)
 
     host = Host.new(options)
     host.encapsulate { yield }
-
-    Tables.unlock(options)
   end
 
   # Private Methods

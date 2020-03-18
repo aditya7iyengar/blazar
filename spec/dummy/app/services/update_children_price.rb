@@ -9,7 +9,7 @@ module UpdateChildrenPrice
   # Public
 
   def self.maximize_all(root_category, upper_limit = 94, lower_limit = 93)
-    Blazar.beam(scopes: [Category.all, Product.all]) do
+    Blazar.beam(scopes: [Category.all, Product.all], lock: true) do
       child_products(root_category).each do |product|
         maximize(product, upper_limit, lower_limit)
       end

@@ -3,17 +3,20 @@
 module Blazar
   # Represents the state of the host that's running relativistic job
   class Host
-    attr_reader :host_type, :host_params, :scopes
+    attr_reader :host_type, :host_params, :scopes, :lock
 
     def initialize(options)
       host_from_host_options(options.host)
       @scopes = options.scopes
+      @lock = options.lock
     end
 
     def encapsulate
       old_config = ActiveRecord::Base.connection_config
 
       scopes = @scopes.map(&:to_a).flatten
+
+      lock_scopes if @lock
 
       ActiveRecord::Base.establish_connection(host_params)
       ActiveRecord::Schema.verbose = false
@@ -37,6 +40,8 @@ module Blazar
       new_records = new_records.map(&:reload)
 
       ActiveRecord::Base.establish_connection(old_config)
+
+      unlock_scopes if @lock
 
       new_records.each do |new_record|
         record = new_record.dup
@@ -67,6 +72,16 @@ module Blazar
 
       # TODO: Think about a better way to get this
       eval(schema_contents)
+    end
+
+    def lock_scopes
+      table_names_from_scopes(@scopes.map(&:to_a).flatten).each do |table_name|
+        ActiveRecord::Base.connection.execute("LOCK TABLES #{table_name} WRITE")
+      end
+    end
+
+    def unlock_scopes
+      ActiveRecord::Base.connection.execute('UNLOCK TABLES')
     end
 
     def table_names_from_scopes(scopes)
