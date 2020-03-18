@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Blazar
-  Options = Struct.new(:scopes, :host, :lock)
+  Options = Struct.new(:scopes, :lock, :host)
 
   # Represents structure for options to be used for a Blazar call
   class Options
@@ -18,7 +18,7 @@ module Blazar
     # * host: Defaults to `'sqlite'`
     def initialize(scopes:, lock: DEFAULT_LOCK, host: DEFAULT_HOST)
       validate!(scopes, lock, host)
-      super(scopes, host, lock)
+      super(scopes, lock, host)
     end
 
     private

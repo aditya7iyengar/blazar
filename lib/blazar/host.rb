@@ -18,43 +18,11 @@ module Blazar
 
       lock_scopes if @lock
 
-      ActiveRecord::Base.establish_connection(host_params)
-      ActiveRecord::Schema.verbose = false
-
-      load_schema(scopes)
-
-      new_records =
-        ActiveRecord::Base.transaction(requires_new: true) do
-          scopes.map do |record|
-            new_record = record.dup
-            new_record.id = record.id
-            new_record.save!
-            new_record
-          end
-        end
-
-      ActiveRecord::Base.transaction(requires_new: true) do
-        yield
-      end
-
-      new_records = new_records.map(&:reload)
-
-      ActiveRecord::Base.establish_connection(old_config)
+      new_records = within_host(scopes, old_config) { yield }
 
       unlock_scopes if @lock
 
-      new_records.each do |new_record|
-        record = new_record.dup
-        record.id = new_record.id
-        record.reload
-        attrs =
-          new_record.attributes.delete_if do |key, _value|
-            %w[id created_at updated_at].include?(key)
-          end
-
-        # skip validations & callbacks ?
-        record.update_columns(attrs)
-      end
+      update_records_in_db(new_records)
     end
 
     private
@@ -87,6 +55,55 @@ module Blazar
     def table_names_from_scopes(scopes)
       # two uniques for STI
       scopes.map(&:class).uniq.map(&:table_name).uniq
+    end
+
+    def within_host(scopes, old_config)
+      update_connection(scopes)
+
+      new_records = add_scopes_to_host(scopes)
+
+      ActiveRecord::Base.transaction(requires_new: true) do
+        yield
+      end
+
+      new_records = new_records.map(&:reload)
+
+      ActiveRecord::Base.establish_connection(old_config)
+
+      new_records
+    end
+
+    def update_connection(scopes)
+      ActiveRecord::Base.establish_connection(host_params)
+      ActiveRecord::Schema.verbose = false
+
+      load_schema(scopes)
+    end
+
+    def add_scopes_to_host(scopes)
+      ActiveRecord::Base.transaction(requires_new: true) do
+        scopes.map do |record|
+          new_record = record.dup
+          new_record.id = record.id
+          new_record.save!
+          new_record
+        end
+      end
+    end
+
+    def update_records_in_db(new_records)
+      new_records.each do |new_record|
+        record = new_record.dup
+        record.id = new_record.id
+        record.reload
+        attrs =
+          new_record.attributes.delete_if do |key, _value|
+            %w[id created_at updated_at].include?(key)
+          end
+
+        # skip validations & callbacks ?
+        record.update_columns(attrs)
+      end
     end
   end
 end
