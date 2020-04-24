@@ -34,11 +34,11 @@ RSpec.describe UpdateChildrenPrice do
 
     it 'updates product1 price to 93' do
       expect do
-        bm = Benchmark.measure do
+        benchmark = Benchmark.measure do
           described_class.maximize_all(product1.category)
         end
 
-        puts bm
+        puts benchmark
         product1.reload
       end.to change(product1, :price).from(44).to(47)
     end
